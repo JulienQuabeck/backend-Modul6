@@ -66,8 +66,8 @@ class ProductCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     description = serializers.CharField()
     price = serializers.DecimalField(max_digits=50, decimal_places=2)
-    market = serializers.ListField(child = serializers.IntegerField(), write_only = True)
-    seller = serializers.ListField(child = serializers.IntegerField(), write_only = True)
+    market = serializers.PrimaryKeyRelatedField(many = True, read_only = True)
+    seller = serializers.PrimaryKeyRelatedField(many = True, read_only = True)
 
     def validate_products(self, value):
         product = Product.objects.filter(id__in = value)
@@ -76,12 +76,12 @@ class ProductCreateSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
-        markets_ids = validated_data.pop('market')
+        market_ids = validated_data.pop('market')
         seller_ids = validated_data.pop('seller')
         product = Product.objects.create(**validated_data)
-        markets = Market.objects.filter(id__in = markets_ids)
+        markets = Market.objects.filter(id__in = market_ids)
         seller = Seller.objects.filter(id__in = seller_ids)
-        product.market.set(markets)
+        product.market.set(markets),
         product.seller.set(seller)
         return product
         
